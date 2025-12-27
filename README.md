@@ -1,114 +1,114 @@
-# Full-Stack URL Shortener
+# High-Performance Async URL Shortener
 
-A RESTful API and frontend application that shortens URLs, handles redirections, and tracks usage, built with **FastAPI** and **MongoDB**.
+A high-concurrency URL shortener built for speed. It uses an **asynchronous** architecture to handle high traffic loads, implements **Redis caching** for sub-millisecond read times, and is fully containerized with **Docker**.
 
 ## 🚀 Tech Stack
 
-* **Backend:** Python 3.12+, FastAPI, Uvicorn
-* **Database:** MongoDB Atlas (Cloud NoSQL)
-* **Frontend:** HTML5, CSS3, Vanilla JavaScript
-* **Tooling:** `uv` (Modern Python package manager)
+* **Backend:** Python 3.12+, FastAPI, Uvicorn, Motor (Async MongoDB Driver)
+* **Database:** MongoDB (Local Docker container or Atlas Cloud)
+* **Caching:** Redis (Cache-Aside pattern)
+* **Infrastructure:** Docker & Docker Compose
+* **Tooling:** `uv` (Fast Python package manager)
 
 ## ✨ Features
 
-* **URL Shortening:** Fast generation of short codes for long URLs.
-* **Custom Aliases:** Users can request specific custom short codes (e.g., `/my-link`).
-* **Redirection:** Instant HTTP 307 redirects to the original URL.
-* **Duplicate Handling:** Validates if an alias is already in use.
-* **CORS Support:** Configured for secure local development and cross-origin requests.
+* **⚡ High Performance:** Capable of handling ~1k+ RPS (Requests Per Second) via Redis caching.
+* **🔄 Async Architecture:** Non-blocking I/O for database operations and request handling.
+* **🐳 Fully Containerized:** One command (`docker compose up`) sets up the API, MongoDB, and Redis.
+* **📊 Analytics:** Tracks click counts and timestamps asynchronously (Fire-and-forget). # TODO
+* **🔗 Core Features:** Shortening, Custom Aliases, Redirection (HTTP 307), and Duplicate Prevention.
 
 ## 📂 Project Structure
 
 ```text
 url-shortener/
-├── backend/             # Backend Application Code
+├── backend/                # Backend Application Code
 │   ├── __init__.py
-│   ├── database.py      # Database connection logic
-│   ├── main.py          # FastAPI app and routes
-│   ├── models.py        # Pydantic models
-│   ├── utils.py         # Utility methods
-├── frontend/            # User Interface
+│   ├── crud.py             # Database & Cache operations (Create, Read, Update)
+│   ├── database.py         # DB Configuration & Connection setup
+│   ├── main.py             # FastAPI Routes & Controller
+│   ├── models.py           # Pydantic Data Models
+│   ├── utils.py            # Helper functions (Base62 encoding)
+├── frontend/               # User Interface
 │   ├── index.html
+│   ├── script.js
 │   ├── styles.css
-│   └── script.js
-├── .env                 # Secrets (Not committed to Git)
-├── requirements.txt     # Dependencies for pip
-├── pyproject.toml       # Dependencies for uv
-└── README.md            # Project Documentation
+├── .env                    # Environment Variables (Excluded from Git)
+├── .dockerignore           # Docker exclusion rules
+├── benchmark.py            # Load testing script
+├── compose.yaml            # Docker Compose orchestration
+├── Dockerfile              # Backend container definition
+├── pyproject.toml          # Dependencies (uv)
+├── README.md               # Documentation
+├── requirements.txt        # Frozen dependencies for Docker
+└── uv.lock                 # Dependency lockfile
 ```
 
 ## 🛠️ Setup & Installation
 
-### 1. Clone the Repository
-First, clone the project to your local machine and navigate into the directory.
+You can run this project in two ways: **Docker (Recommended)** or **Manual Local Dev**.
 
-```bash
-git clone [https://github.com/bencurley523/url-shortener.git](https://github.com/bencurley523/url-shortener.git)
-cd url-shortener
-```
+### Method 1: Docker (Fastest)
+This sets up the API, MongoDB, and Redis automatically.
 
-### 2. Configuration (.env)
-You must set up your database connection before running the app.
-
-1.  Create a file named `.env` in the root directory (`url-shortener/`).
-2.  Paste your MongoDB connection string into it:
-    ```env
-    MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/myDatabase
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/bencurley523/url-shortener.git
+    cd url-shortener
     ```
 
-### 3. Installation & Running
-Choose **one** of the methods below.
+2.  **Configuration (.env)**
+    Create a `.env` file in the root. Docker will read these values.
+    ```env
+    MONGO_URI=mongodb://mongo:27017
+    DB_NAME=shortener_db
+    REDIS_URL=redis://redis:6379
+    CACHE_TTL=3600
+    ```
 
-#### Option A: Using `uv` (Recommended)
-This project uses [uv](https://github.com/astral-sh/uv) for fast dependency management.
+3.  **Run with Docker Compose**
+    ```bash
+    docker compose up -d --build
+    ```
+    *The backend API will be available at `http://localhost:8000`.*
 
-1.  **Sync dependencies:**
+---
+
+### Method 2: Manual Local Dev (Using `uv`)
+Use this if you want to run the Python code directly on your machine for debugging.
+
+1.  **Prerequisites:** You must have MongoDB and Redis running locally (or use Cloud URIs).
+
+2.  **Install Dependencies:**
     ```bash
     uv sync
     ```
 
-#### Option B: Using standard `pip`
-If you do not have `uv`, you can use standard Python tools.
-
-1.  **Create and activate a virtual environment:**
+3.  **Run the Server:**
     ```bash
-    python -m venv .venv
-    # Windows:
-    .venv\Scripts\activate
-    # Mac/Linux:
-    source .venv/bin/activate
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
+    uv run uvicorn backend.main:app --reload
     ```
 
-## 📝 Usage
+## 🖥️ Frontend Setup
+Since the frontend is static HTML/JS, you need to serve it separately to avoid CORS issues.
 
-To run the full application, you will need two terminal windows open.
+1.  Open a new terminal.
+2.  Navigate to the frontend folder:
+    ```bash
+    cd frontend
+    ```
+3.  Start a simple Python HTTP server:
+    ```bash
+    python -m http.server 5500
+    ```
+4.  Open your browser to: **http://localhost:5500**
 
-### 1. Start the Backend
-In your first terminal, make sure the FastAPI server is running:
-uv:
-```bash
-uv run uvicorn backend.main:app --reload
-```
-pip:
-```bash
-uvicorn backend.main:app --reload
-```
-### 2. Start the Frontend
-In a new terminal, serve the frontend files to avoid CORS issues:
+## 🧪 Benchmarking
+To test the performance improvements from Redis Caching:
 
-```bash
-cd frontend
-python -m http.server 5500
-```
-
-### 3. Access the App
-
-Open your browser and navigate to http://localhost:5500.
-
-Enter a long URL (and optionally a custom alias).
-
-Click Shorten to generate your link!
+1.  Ensure the Docker stack is running.
+2.  Run the benchmark script (requires `aiohttp`):
+    ```bash
+    uv run python benchmark.py
+    ```
+    *Target Performance: ~950+ RPS with caching enabled.*
