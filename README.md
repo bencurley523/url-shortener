@@ -17,6 +17,26 @@ A RESTful API and frontend application that shortens URLs, handles redirections,
 * **Duplicate Handling:** Validates if an alias is already in use.
 * **CORS Support:** Configured for secure local development and cross-origin requests.
 
+## 📂 Project Structure
+
+```text
+url-shortener/
+├── backend/             # Backend Application Code
+│   ├── __init__.py
+│   ├── database.py      # Database connection logic
+│   ├── main.py          # FastAPI app and routes
+│   ├── models.py        # Pydantic models
+│   ├── utils.py         # Utility methods
+├── frontend/            # User Interface
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
+├── .env                 # Secrets (Not committed to Git)
+├── requirements.txt     # Dependencies for pip
+├── pyproject.toml       # Dependencies for uv
+└── README.md            # Project Documentation
+```
+
 ## 🛠️ Setup & Installation
 
 ### 1. Clone the Repository
@@ -46,10 +66,6 @@ This project uses [uv](https://github.com/astral-sh/uv) for fast dependency mana
     ```bash
     uv sync
     ```
-2.  **Run the server:**
-    ```bash
-    uv run uvicorn backend.main:app --reload
-    ```
 
 #### Option B: Using standard `pip`
 If you do not have `uv`, you can use standard Python tools.
@@ -66,30 +82,6 @@ If you do not have `uv`, you can use standard Python tools.
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Run the server:**
-    ```bash
-    uvicorn backend.main:app --reload
-    ```
-
-## 📂 Project Structure
-
-```text
-url-shortener/
-├── backend/             # Backend Application Code
-│   ├── __init__.py
-│   ├── database.py      # Database connection logic
-│   ├── main.py          # FastAPI app and routes
-│   ├── models.py        # Pydantic models
-│   ├── utils.py         # Utility methods
-├── frontend/            # User Interface
-│   ├── index.html
-│   ├── styles.css
-│   └── script.js
-├── .env                 # Secrets (Not committed to Git)
-├── requirements.txt     # Dependencies for pip
-├── pyproject.toml       # Dependencies for uv
-└── README.md            # Project Documentation
-```
 
 ## 📝 Usage
 
@@ -97,8 +89,13 @@ To run the full application, you will need two terminal windows open.
 
 ### 1. Start the Backend
 In your first terminal, make sure the FastAPI server is running:
+uv:
 ```bash
 uv run uvicorn backend.main:app --reload
+```
+pip:
+```bash
+uvicorn backend.main:app --reload
 ```
 ### 2. Start the Frontend
 In a new terminal, serve the frontend files to avoid CORS issues:
