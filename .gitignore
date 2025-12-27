@@ -1,5 +1,29 @@
+# Security (NEVER commit this)
 .env
+
+# Python / Environment
 __pycache__/
+*.py[cod]
 .venv/
 venv/
+.pytest_cache/
+
+# OS specific
 .DS_Store
+Thumbs.db
+
+# Redis snapshot
+dump.rdb
+
+# IDE Settings
+.vscode/
+*.code-workspace
+
+# Local Data Volumes (Prevent committing DB data)
+mongo-data/
+redis-data/
+data/
+
+# Testing & Coverage
+.coverage
+htmlcov/

@@ -1,6 +1,7 @@
 import os
 import certifi
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
+import redis.asyncio as redis
 from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
 
@@ -26,43 +27,55 @@ except ValueError:
 # (Machine ID takes the upper bits, Sequence takes the lower 20 bits)
 MACHINE_OFFSET = 20 
 
-# Connect and verify connection to MongoDB
-client = MongoClient(uri, tlsCAFile=certifi.where(), server_api=ServerApi('1'))
+params = {
+    "server_api": ServerApi('1')
+}
+# Only force SSL if connecting to Cloud (Atlas)
+if "mongodb+srv" in uri:
+    params["tlsCAFile"] = certifi.where()
 
-try:
-    client.admin.command('ping')
-    print("✅ Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(f"❌ Connection failed: {e}")
+client = AsyncIOMotorClient(uri, **params)
+
+# Redis configuration
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_client = redis.from_url(redis_url, decode_responses=True)
+
+# Cache configuration
+CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))  # Default 1 hour
+CACHE_KEY_PREFIX = "url:"
 
 # Define Database and Collections
 db = client[db_name]
 url_collection = db["urls"]
 counters_collection = db["counters"]
 
-# Create shortUrl index
-try:
-    url_collection.create_index("shortUrl", unique=True)
-except Exception as e:
-    print(f"Index creation warning: {e}")
+async def verify_connection():
+    """Verify connection to MongoDB."""
+    try:
+        await client.admin.command('ping')
+        print("✅ Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        print(f"❌ MongoDB connection failed: {e}")
 
-# Generator Function
-def get_next_sequence_id(sequence_name: str = "url_id"):
-    """
-    Atomically increments a counter and combines it with Machine ID.
-    Formula: (MACHINE_ID << MACHINE_OFFSET) | <seq_num>
-    """
-    # Get the next sequence number from the 'counters' collection
-    counter = counters_collection.find_one_and_update(
-        {"_id": sequence_name},          # Look for the counter named "url_id"
-        {"$inc": {"sequence_value": 1}}, # Increment by 1
-        upsert=True,                     # Create if it doesn't exist
-        return_document=True             # Return the NEW value
-    )
-    
-    seq_num = counter["sequence_value"]
-    
-    # id = Machine ID OR Sequence Number
-    unique_id = (MACHINE_ID << MACHINE_OFFSET) | seq_num
-    
-    return unique_id
+async def verify_redis_connection():
+    """Verify connection to Redis."""
+    try:
+        await redis_client.ping()
+        print("✅ Successfully connected to Redis!")
+    except Exception as e:
+        print(f"⚠️ Redis connection failed: {e}")
+
+async def close_redis():
+    """Close Redis connection."""
+    try:
+        await redis_client.close()
+        print("✅ Redis connection closed")
+    except Exception as e:
+        print(f"⚠️ Error closing Redis connection: {e}")
+
+async def create_indexes():
+    """Create indexes on application startup."""
+    try:
+        await url_collection.create_index("shortUrl", unique=True)
+    except Exception as e:
+        print(f"Index creation warning: {e}")

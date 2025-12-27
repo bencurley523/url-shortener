@@ -1,0 +1,47 @@
+services:
+  # Service 1: The FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # This overrides the 'CMD' in your Dockerfile.
+    # We add '--reload' so the server updates whenever you save a code file.
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    
+    # "Docker Compose Watch" - The modern way to develop.
+    # This syncs your local file changes into the container instantly.
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app/backend
+        - action: rebuild
+          path: pyproject.toml  # Rebuild if dependencies change
+    
+    # We tell Docker: "Start these services before starting the backend"
+    depends_on:
+      - redis
+      - mongo
+
+  # Service 2: Cache
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"  # Exposed so you can inspect it with a GUI tool later
+
+  # Service 3: The Database (Local MongoDB)
+  # This allows you to work offline without connecting to Atlas if you choose.
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+# Volumes allow data to survive even if you delete the containers.
+volumes:
+  mongo_data:

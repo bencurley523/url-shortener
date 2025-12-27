@@ -5,9 +5,17 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "certifi>=2025.11.12",
     "fastapi>=0.124.4",
+    "motor>=3.6.0",
     "pydantic>=2.12.5",
     "pymongo>=4.15.5",
     "python-dotenv>=1.2.1",
+    "redis>=7.1.0",
     "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "aiohttp>=3.13.2",
 ]
