@@ -1,7 +1,8 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.database import (
-    counters_collection, 
+    counters_collection,
+    url_collection,
     redis_client, 
     MACHINE_ID, 
     MACHINE_OFFSET,
@@ -29,10 +30,20 @@ async def get_next_sequence_id(sequence_name: str = "url_id") -> int:
     return unique_id
 
 async def update_stats(short_url: str):
-    # TO DO
-    return
+    """
+    Background task to update click counters (fire-and-forget)
+    """
+    try:
+        await url_collection.update_one(
+            {"shortUrl": short_url},
+            {
+                "$inc": {"clicks": 1},
+                "$set": {"last_accessed": datetime.now(timezone.utc)}
+            }
+        )
+    except Exception as e:
+        print(f"❌ Error updating stats for {short_url}: {e}")
 
-# Cache helper functions
 def get_cache_key(short_url: str) -> str:
     """Generate cache key for a short URL."""
     return f"{CACHE_KEY_PREFIX}{short_url}"

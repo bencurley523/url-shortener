@@ -16,7 +16,8 @@ if not uri:
 if not db_name:
     raise ValueError("DB_NAME environment variable is required")
 
-# Configuration for link ID generation; Default to Machine ID 1 if not set in .env
+# Configuration for link ID generation
+# Default to Machine ID 1 if not set in .env
 machine_id_str = os.getenv("MACHINE_ID", "1")
 try:
     MACHINE_ID = int(machine_id_str)
@@ -53,7 +54,7 @@ async def verify_connection():
     """Verify connection to MongoDB."""
     try:
         await client.admin.command('ping')
-        print("✅ Pinged your deployment. You successfully connected to MongoDB!")
+        print("✅ Successfully connected to MongoDB")
     except Exception as e:
         print(f"❌ MongoDB connection failed: {e}")
 
@@ -61,7 +62,7 @@ async def verify_redis_connection():
     """Verify connection to Redis."""
     try:
         await redis_client.ping()
-        print("✅ Successfully connected to Redis!")
+        print("✅ Successfully connected to Redis")
     except Exception as e:
         print(f"⚠️ Redis connection failed: {e}")
 
