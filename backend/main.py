@@ -14,7 +14,7 @@ from .database import (
     close_redis,
 )
 from .crud import get_next_sequence_id, update_stats, get_url_from_cache, set_url_in_cache
-from .models import URLCreate, URLResponse
+from .models import URLCreate, URLResponse, URLStats
 from .utils import base62_encode
 
 @asynccontextmanager
@@ -123,3 +123,20 @@ async def redirect_to_url(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error occurred: {str(e)}"
         )
+
+@app.get("/stats/{short_url}", response_model=URLStats)
+async def get_url_stats(short_url: str):
+    """
+    Retrieve analytics for a specific short URL.
+    """
+    url_doc = await url_collection.find_one({"shortUrl": short_url})
+
+    if not url_doc:
+        raise HTTPException(status_code=404, detail="URL not found")
+
+    return URLStats(
+        shortUrl=url_doc["shortUrl"],
+        longUrl=url_doc["longUrl"],
+        clicks=url_doc.get("clicks", 0),
+        last_accessed=url_doc.get("last_accessed")
+    )

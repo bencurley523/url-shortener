@@ -7,28 +7,57 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-    <div class="container">
-        <h1>URL Shortener</h1>
-        <p>Enter a long URL to make it short.</p>
+    <div class="main-container">
         
-        <div class="input-group">
-            <input type="text" id="longUrl" placeholder="https://example.com/very-long-url">
+        <div class="card">
+            <h1>🔗 URL Shortener</h1>
+            <p class="subtitle">Enter a long URL to make it short.</p>
+            
+            <div class="input-group">
+                <input type="text" id="longUrl" placeholder="https://example.com/very-long-url">
+            </div>
+            
+            <div class="input-group row">
+                <input type="text" id="customAlias" placeholder="custom-alias (optional)">
+                <button onclick="shortenUrl()">Shorten!</button>
+            </div>
+
+            <div id="shortenerOutput" class="output-placeholder" style="display:none;">
+                <p>Here is your short link:</p>
+                <a id="shortLinkResult" href="#" target="_blank" class="result-link"></a>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy</button>
+            </div>
+            <p id="shortenerError" class="error-msg"></p>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="custom_alias" placeholder="my-url">
-            <button onclick="shortenUrl()">Shorten!</button>
+        <div class="card">
+            <h2>📊 Check Link Stats</h2>
+            <p class="subtitle">See how many people clicked your link.</p>
+            
+            <div class="input-group row">
+                <input type="text" id="statsInput" placeholder="Enter short code (e.g. google)">
+                <button onclick="checkStats()" class="secondary-btn">Check</button>
+            </div>
+
+            <p id="statsError" class="error-msg"></p>
+
+            <div id="statsOutput" class="output-placeholder" style="display: none;">
+                <div class="stat-item">
+                    <span class="stat-label">Clicks:</span>
+                    <span id="clickCount" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Accessed:</span>
+                    <span id="lastAccessed" class="stat-value">Never</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Original URL:</span>
+                    <a id="originalLink" href="#" target="_blank" class="original-link">...</a>
+                </div>
+            </div>
         </div>
 
-        <div id="result" class="hidden">
-            <p>Your short URL:</p>
-            <a id="shortLink" href="#" target="_blank">...</a>
-        </div>
-        
-        <p id="error" class="error"></p>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

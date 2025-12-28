@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, HttpUrl, field_validator
-from urllib.parse import urlparse
 from datetime import datetime
 from typing import Optional
 import re
@@ -26,3 +25,9 @@ class URLResponse(BaseModel):
     shortUrl: str
     longUrl: str
     createdAt: datetime
+
+class URLStats(BaseModel):
+    shortUrl: str
+    longUrl: str
+    clicks: int
+    last_accessed: Optional[datetime] = None
