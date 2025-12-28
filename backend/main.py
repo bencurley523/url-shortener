@@ -1,13 +1,16 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status, Path
+from fastapi import FastAPI, HTTPException, status, Path, Depends
 from fastapi.background import BackgroundTasks
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from .database import (
     url_collection,
+    redis_client,
     verify_connection, 
     create_indexes,
     verify_redis_connection,
@@ -23,9 +26,11 @@ async def lifespan(app: FastAPI):
     await verify_connection()
     await create_indexes()
     await verify_redis_connection()
+    await FastAPILimiter.init(redis_client)
     yield
     # Shutdown: cleanup connections
     await close_redis()
+    await FastAPILimiter.close()
     # Motor handles MongoDB connection cleanup automatically
 
 app = FastAPI(lifespan=lifespan)
@@ -43,7 +48,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/shorten", response_model=URLResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/shorten",
+    response_model=URLResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))]
+)
 async def shorten_url(url: URLCreate):
     """Create a shortened URL."""
     short_url = url.custom_alias if url.custom_alias else base62_encode(await get_next_sequence_id())
@@ -79,7 +88,9 @@ async def shorten_url(url: URLCreate):
             detail=f"Database error occurred: {str(e)}"
         )
 
-@app.get("/{short_url}")
+@app.get("/{short_url}",
+    dependencies=[Depends(RateLimiter(times=100, seconds=60))]
+)
 async def redirect_to_url(
     background_tasks: BackgroundTasks,
     short_url: str = Path(..., description="The short URL code", min_length=1, max_length=50)
@@ -101,7 +112,7 @@ async def redirect_to_url(
             
             # Cache the result for future requests
             await set_url_in_cache(short_url, url_data)
-            print("No Cache Hit :(")
+            print("🐌 Cache Miss")
         else:
             print(f"⚡ Cache Hit")
         
@@ -124,7 +135,10 @@ async def redirect_to_url(
             detail=f"Database error occurred: {str(e)}"
         )
 
-@app.get("/stats/{short_url}", response_model=URLStats)
+@app.get("/stats/{short_url}",
+    response_model=URLStats,
+    dependencies=[Depends(RateLimiter(times=5, seconds=60))]
+)
 async def get_url_stats(short_url: str):
     """
     Retrieve analytics for a specific short URL.

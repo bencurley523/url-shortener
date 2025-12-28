@@ -59,9 +59,10 @@ async function checkStats() {
         const response = await fetch(`${API_BASE}/stats/${shortCode}`);
         
         if (!response.ok) {
-            // Handle 404 cleanly here
             if (response.status === 404) {
                 errorMsg.innerText = "Short URL not found.";
+            } else if (response.status === 429) {
+                errorMsg.innerText = "Too many requests.";
             } else {
                 errorMsg.innerText = "Error fetching stats.";
             }
