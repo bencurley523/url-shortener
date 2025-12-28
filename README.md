@@ -13,6 +13,7 @@ A high-concurrency URL shortener built for speed. It uses an **asynchronous** ar
 ## ✨ Features
 
 * **⚡ High Performance:** Capable of handling ~1k+ RPS (Requests Per Second) via Redis caching.
+* **🛡️ Rate Limiting:** Protects against abuse with Redis-backed throttling (e.g., 100 requests/min per IP).
 * **🔄 Async Architecture:** Non-blocking I/O for database operations and request handling.
 * **🐳 Fully Containerized:** One command (`docker compose up`) sets up the API, MongoDB, and Redis.
 * **📊 Analytics:** Tracks click counts and timestamps asynchronously (Fire-and-forget).
