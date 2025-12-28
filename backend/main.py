@@ -8,7 +8,7 @@ from fastapi_limiter.depends import RateLimiter
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
-from .database import (
+from database import (
     url_collection,
     redis_client,
     verify_connection, 
@@ -16,9 +16,9 @@ from .database import (
     verify_redis_connection,
     close_redis,
 )
-from .crud import get_next_sequence_id, update_stats, get_url_from_cache, set_url_in_cache
-from .models import URLCreate, URLResponse, URLStats
-from .utils import base62_encode
+from crud import get_next_sequence_id, update_stats, get_url_from_cache, set_url_in_cache
+from models import URLCreate, URLResponse, URLStats
+from utils import base62_encode
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
+    "http://localhost:3000",
     "http://localhost:5500",
     "http://localhost:8000"
 ]
@@ -100,9 +101,6 @@ async def redirect_to_url(
         # Try to get from cache first
         url_data = await get_url_from_cache(short_url)
 
-        # Uncomment for testing without cache
-        # url_data = None
-        
         if not url_data:
             # Cache miss - get from MongoDB
             url_data = await url_collection.find_one({"shortUrl": short_url})

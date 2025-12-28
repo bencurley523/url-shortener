@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone
-from backend.database import (
+
+from database import (
     counters_collection,
     url_collection,
     redis_client, 
